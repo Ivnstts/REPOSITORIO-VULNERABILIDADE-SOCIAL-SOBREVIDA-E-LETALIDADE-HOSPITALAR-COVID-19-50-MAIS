@@ -10,7 +10,7 @@ library(ggplot2)
 
 boxLabels = c("A", "B", "C", "D")
 
-binconf(7574, 14469 ,alpha = 0.05)
+
 
 forest_letalidade_80 <- data.frame(yAxis = length(boxLabels):1, 
                                    boxOdds = c(55.25292, 57.86275, 60.76915, 62.12653 ), 
@@ -29,7 +29,7 @@ forest_letalidade_80 <- data.frame(yAxis = length(boxLabels):1,
     theme_economist_white()+ggtitle("80 + ANOS"))
 
 
-binconf(7574, 14469 ,alpha = 0.05)
+
 
 
 forest_letalidade_70 <- data.frame(yAxis = length(boxLabels):1, 
@@ -53,7 +53,7 @@ forest_letalidade_70 <- data.frame(yAxis = length(boxLabels):1,
 
 
 
-binconf(5763, 13498 ,alpha = 0.05)
+
 
 
 forest_letalidade_60 <- data.frame(yAxis = length(boxLabels):1, 
@@ -76,7 +76,7 @@ forest_letalidade_60 <- data.frame(yAxis = length(boxLabels):1,
 
 
 
-binconf(3317, 10730 ,alpha = 0.05)
+
 
 
 forest_letalidade_50 <- data.frame(yAxis = length(boxLabels):1, 
