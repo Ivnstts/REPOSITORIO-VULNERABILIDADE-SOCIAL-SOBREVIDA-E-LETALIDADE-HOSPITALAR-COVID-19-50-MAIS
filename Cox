@@ -1,0 +1,28 @@
+Para modelo de riscos proporcionais de Cox, temos:
+
+
+
+library(survival)
+library(survminer)
+
+#Amarelos+Brancos
+COX$COR <- case_when( COX$COR_DE_PELE == "pretos"  ~ 'pretos',
+                      COX$COR_DE_PELE == "pardos" ~'pardos',
+                      COX$COR_DE_PELE == "indígenas"  ~ 'indígenas',
+                      COX$COR_DE_PELE == "brancos"| COX$COR_DE_PELE == "amarelos"  ~ 'brancos e amarelos')
+                      
+#Remoção de sexo indefinido
+COX <-  filter(COX, CS_SEXO != "I")
+
+#Seleção de Hospitalizações
+HOSP <- subset(COX,HOSPITAL == 1 )
+
+#Remoção de outlayers de tempo entre data dos primeiros sintoma até óbito
+C <- subset(HOSP,DIAS_SINTOMA_MORTE <= 150 )
+
+
+#Modelo Multiplo
+res.cox <- coxph(Surv(DIAS_SINTOMA_MORTE, MORTE) ~  CS_SEXO+NU_IDADE_N+COR+GeoSES+ENTUBADO+FATOR_RISC, data = C)
+res.cox
+summary(res.cox)
+
