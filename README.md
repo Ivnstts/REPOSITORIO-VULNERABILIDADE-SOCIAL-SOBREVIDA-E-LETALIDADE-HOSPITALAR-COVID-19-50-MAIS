@@ -16,7 +16,7 @@ VULNERABILIDADE SOCIAL E LETALIDADE POR SRAG COVID-19 EM ADULTOS COM MAIS DE 50 
 Esse é o repositório para scripts de análise em R e datasets da pesquisa: 
 VULNERABILIDADE SOCIAL E LETALIDADE POR SRAG COVID-19 EM ADULTOS COM MAIS DE 50 ANOS OU MAIS.
 
-
+Os Scripts e Bancos de dados estão organizados em branches do repositório.
 
 
 
