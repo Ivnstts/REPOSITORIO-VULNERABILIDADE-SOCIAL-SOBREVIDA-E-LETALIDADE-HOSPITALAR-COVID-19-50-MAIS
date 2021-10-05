@@ -1,0 +1,135 @@
+#Pacotes
+library(purrr)
+library(readxl)
+library(writexl)
+library(foreign)
+library(devtools)
+library(eeptools)
+library(doParallel)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(tidyverse)
+library(lubridate)
+library(Hmisc)
+
+#DENINIÇÃO DOS BANCOS DE DADOS
+GEOSES <- read_xlsx("C:/Users/HP/Downloads/SDS_2021/GEOSES_6DIGITOS.xlsx")
+SIVEP <- read.csv2("C:/Users/HP/Downloads/SDS_2021/miscelanea/banco_de_dados.csv", header=T, stringsAsFactors=T)
+
+#JOIN GEOSES: BANCO DE DADOS GEORREFERENCIADO 
+SIVEP_GEOSES <- left_join(SIVEP, GEOSES, by = "CO_MUN_RES")
+banco_de_dados <- dim(SIVEP_GEOSES)
+
+#SELEÇÃO DE VARIVEIS DE INTERESSE
+VARIAVEIS_DE_INTERESSE <- select(SIVEP_GEOSES, CS_SEXO, CS_RACA, TP_IDADE, NU_IDADE_N, 
+                                 SG_UF, ID_MN_RESI, CO_MUN_RES, 
+                                 DT_SIN_PRI, DT_NOTIFIC, DT_ENTUTI, DT_ENCERRA, DT_INTERNA,
+                                 FATOR_RISC, CARDIOPATI, HEMATOLOGI, SIND_DOWN, HEPATICA, ASMA, DIABETES, 
+                                 NEUROLOGIC,PNEUMOPATI, IMUNODEPRE, RENAL, OBESIDADE, OUT_MORBI,
+                                 HOSPITAL, UTI, EVOLUCAO, SUPORT_VEN, 
+                                 PCR_SARS2, CLASSI_FIN, CRITERIO,
+                                 VACINA, GeoSES)
+variaveis_de_interesse <- dim(VARIAVEIS_DE_INTERESSE)
+
+filtro_idade_anos <- subset(VARIAVEIS_DE_INTERESSE, TP_IDADE == 3)
+filtro_50_anos_mais <- subset(filtro_idade_anos, NU_IDADE_N >= 50)
+filtro_srag_covid_confirmado <- subset(filtro_50_anos_mais, CLASSI_FIN == 5)
+
+# BANCO DE DADOS FILTRADO
+DADOS_TRATADOS  <- filtro_srag_covid_confirmado
+rm(filtro_idade_anos, filtro_50_anos_mais, filtro_srag_covid_confirmado) 
+dados_tratados <- dim(DADOS_TRATADOS)
+
+# MODELANDO DADOS DE FORMA BINÁRIA (1=SIM, 0=NÃO)
+#coluna morte srag
+DADOS_TRATADOS$MORTE <- ifelse(DADOS_TRATADOS$EVOLUCAO == 2, 1, 0)
+
+#coluna outras causas de óbito
+DADOS_TRATADOS$MORTE_OUTRA_CAUSA <- ifelse(DADOS_TRATADOS$EVOLUCAO == 3, 1, 0)
+
+#vacinados
+DADOS_TRATADOS$VACINA <- case_when( DADOS_TRATADOS$VACINA == 1 ~ 'S',
+                                    DADOS_TRATADOS$VACINA == 2 |DADOS_TRATADOS$VACINA == 9 ~ 'N')
+
+
+#cardiopatia
+DADOS_TRATADOS$CARDIOPATI <- ifelse(DADOS_TRATADOS$CARDIOPATI == 1, 1, 0)
+#hematopatia
+DADOS_TRATADOS$HEMATOLOGI <- ifelse(DADOS_TRATADOS$HEMATOLOGI == 1, 1, 0)
+#down
+DADOS_TRATADOS$SIND_DOWN <- ifelse(DADOS_TRATADOS$SIND_DOWN == 1, 1, 0)
+#hepatopatia
+DADOS_TRATADOS$HEPATICA <- ifelse(DADOS_TRATADOS$HEPATICA == 1, 1, 0)
+#asma
+DADOS_TRATADOS$ASMA <- ifelse(DADOS_TRATADOS$ASMA == 1, 1, 0)
+#diabetes
+DADOS_TRATADOS$DIABETES <- ifelse(DADOS_TRATADOS$DIABETES == 1, 1, 0)
+#neuropatia
+DADOS_TRATADOS$NEUROLOGIC <- ifelse(DADOS_TRATADOS$NEUROLOGIC == 1, 1, 0)
+#pneumoptia
+DADOS_TRATADOS$PNEUMOPATI <- ifelse(DADOS_TRATADOS$PNEUMOPATI == 1, 1, 0)
+#imunodepressao
+DADOS_TRATADOS$IMUNODEPRE <- ifelse(DADOS_TRATADOS$IMUNODEPRE == 1, 1, 0)
+#nefropatia
+DADOS_TRATADOS$RENAL <- ifelse(DADOS_TRATADOS$RENAL == 1, 1, 0)
+#obesidade
+DADOS_TRATADOS$OBESIDADE <- ifelse(DADOS_TRATADOS$OBESIDADE == 1, 1, 0)
+#outras comorbidades
+DADOS_TRATADOS$OUT_MORBI <- ifelse(DADOS_TRATADOS$OUT_MORBI == 1, 1, 0)                
+                 
+# ventilação mecanica/entubação
+DADOS_TRATADOS$ENTUBADO <- ifelse(DADOS_TRATADOS$SUPORT_VEN == 1, 1, 0)
+
+# hospitalição
+DADOS_TRATADOS$HOSPITAL <- ifelse(DADOS_TRATADOS$HOSPITAL == 1, 1, 0)            
+
+# terapia intensiva
+DADOS_TRATADOS$UTI <- ifelse(DADOS_TRATADOS$UTI == 1, 1, 0)  
+
+# cor de pele
+DADOS_TRATADOS$COR_DE_PELE <- case_when( DADOS_TRATADOS$CS_RACA == 2 ~ 'pretos',
+                                         DADOS_TRATADOS$CS_RACA == 4 ~ 'pardos',
+                                         DADOS_TRATADOS$CS_RACA == 1 ~ 'brancos',
+                                         DADOS_TRATADOS$CS_RACA == 3 ~ 'amarelos',
+                                         DADOS_TRATADOS$CS_RACA == 5 ~ 'indígenas')  
+#CRIA FAIXAS DE GEOSES
+Faixas_geoses <- DADOS_TRATADOS %>% mutate(GeoSES = case_when(GeoSES = -1  & GeoSES <= -0.49999999999999999999999 ~ 'D',
+                                     GeoSES >= -0.5  & GeoSES <= 0 ~ 'C',
+                                     GeoSES >= 0  & GeoSES <= 0.49999999999999999999999 ~ 'B',
+                                     GeoSES >= 0.5  & GeoSES <= 1 ~ 'A'))
+#CRIA FAIXAS ETÁRIAS
+Faixas_etarias <-  Faixas_geoses %>% mutate(NU_IDADE_N = case_when(NU_IDADE_N >= 50  & NU_IDADE_N <= 59 ~ '50-59',
+                                                               NU_IDADE_N >= 60  & NU_IDADE_N <= 69 ~ '60-69',
+                                                               NU_IDADE_N >= 70  & NU_IDADE_N <= 79 ~ '70-79',
+                                                               NU_IDADE_N >= 80  & NU_IDADE_N <= 120 ~ '80+')) 
+
+DADOS_TRATADOS <- Faixas_etarias
+rm(Faixas_etarias, Faixas_geoses, tab)
+
+#FORMATAÇÃO EM DATA
+DADOS_TRATADOS$DT_SIN_PRI <- dmy(DADOS_TRATADOS$DT_SIN_PRI)
+DADOS_TRATADOS$DT_NOTIFIC <- dmy(DADOS_TRATADOS$DT_NOTIFIC)
+DADOS_TRATADOS$DT_ENTUTI <- dmy(DADOS_TRATADOS$DT_ENTUTI)
+DADOS_TRATADOS$DT_INTERNA <- dmy(DADOS_TRATADOS$DT_INTERNA)
+DADOS_TRATADOS$DT_ENCERRA <- dmy(DADOS_TRATADOS$DT_ENCERRA)
+
+#CALCULO DOS DIAS
+DADOS_TRATADOS$DIAS_NOTIFIC_MORTE<- difftime(DADOS_TRATADOS$DT_ENCERRA,DADOS_TRATADOS$DT_NOTIFIC,units = c("days"))
+DADOS_TRATADOS$DIAS_SINTOMA_MORTE<- difftime(DADOS_TRATADOS$DT_ENCERRA,DADOS_TRATADOS$DT_SIN_PRI,units = c("days"))
+
+#VERIFICAÇÃO DE VARIÁVEIS, DIAS E GEOSES
+count(DADOS_TRATADOS, DIAS_SINTOMA_MORTE >= 150)
+writexl
+count(DADOS_TRATADOS, DIAS_NOTIFIC_MORTE)
+count (DADOS_TRATADOS, GeoSES)
+
+#FINALIZAÇÃO DO BANCO DE DADOS
+head(DADOS_TRATADOS)
+DADOS <- select(DADOS_TRATADOS, CS_SEXO, NU_IDADE_N, COR_DE_PELE, GeoSES,SG_UF, ID_MN_RESI,
+                HOSPITAL, UTI, ENTUBADO, VACINA, MORTE, DIAS_SINTOMA_MORTE, DIAS_NOTIFIC_MORTE,
+                FATOR_RISC, CARDIOPATI, HEMATOLOGI, SIND_DOWN, HEPATICA, ASMA, DIABETES, 
+                NEUROLOGIC,PNEUMOPATI, IMUNODEPRE, RENAL, OBESIDADE, OUT_MORBI)
+dados <- dim(DADOS)
+# ESCRITA DO BANCO
+write.csv(DADOS,"C:/Users/HP/Downloads/SDS_2021/FILE_DADOS_ARTIGO.csv")
