@@ -23,7 +23,7 @@ VULNERABILIDADE SOCIAL E LETALIDADE POR SRAG COVID-19 EM ADULTOS COM MAIS DE 50 
 
 
 Para qualquer duvida a respeito do repositório, 
-por favor entre em co´ntato com ivan.ls@pccampinas.edu.br.
+por favor entre em contato com ivan.ls@pccampinas.edu.br.
 
 Cordialmente,
 Ivan Lira dos Santos
