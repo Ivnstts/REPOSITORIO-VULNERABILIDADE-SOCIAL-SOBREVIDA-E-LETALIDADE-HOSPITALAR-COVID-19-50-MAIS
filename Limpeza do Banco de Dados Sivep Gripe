@@ -131,5 +131,29 @@ DADOS <- select(DADOS_TRATADOS, CS_SEXO, NU_IDADE_N, COR_DE_PELE, GeoSES,SG_UF, 
                 FATOR_RISC, CARDIOPATI, HEMATOLOGI, SIND_DOWN, HEPATICA, ASMA, DIABETES, 
                 NEUROLOGIC,PNEUMOPATI, IMUNODEPRE, RENAL, OBESIDADE, OUT_MORBI)
 dados <- dim(DADOS)
-# ESCRITA DO BANCO
-write.csv(DADOS,"C:/Users/HP/Downloads/SDS_2021/FILE_DADOS_ARTIGO.csv")
+
+# CORTE 100 DIAS
+CORTE_100_DIAS <- subset(DADOS_TRATADOS_HOSPITALARES,DIAS_SINTOMA_MORTE <= 100 )
+
+# MULTIMORBIDADES
+SOMA_MORBIDADE = CORTE_100_DIAS %>%rowwise() %>%mutate(SOMA_MORBIDADE = sum(c_across(14:25)))
+
+CORTE_100_DIAS$SOMA_MORBIDADE <- as.numeric(CORTE_100_DIAS$SOMA_MORBIDADE)
+
+CORTE_100_DIAS$CLASSE_MULTIMORBIDADE <- case_when(CORTE_100_DIAS$SOMA_MORBIDADE == 0 ~ '0 comorbidade', 
+                                                  CORTE_100_DIAS$SOMA_MORBIDADE == 1 ~ '1 comorbidades',
+                                                  CORTE_100_DIAS$SOMA_MORBIDADE == 2 ~ '2 comorbidades',
+                                                  CORTE_100_DIAS$SOMA_MORBIDADE >= 3 ~ '3 comorbidades e mais')
+                                                  
+# TEMPO SINTOMA HOSPITAL
+CORTE_100_DIAS$DIAS_SINTOMA_HOSP <- 
+  as.numeric(CORTE_100_DIAS$DIAS_SINTOMA_HOSP)
+  
+# TEMPO SINTOMA DESFECHO
+
+CORTE_100_DIAS$DIAS_SINTOMA_MORTE <- 
+  as.numeric(CORTE_100_DIAS$DIAS_SINTOMA_MORTE)
+
+# FINALIZA BANCO DE DADOS
+write.csv(CORTE_100_DIAS,"C:/Users/HP/Downloads/dados_csp.csv")
+
