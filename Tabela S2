@@ -1,0 +1,7 @@
+library(tidyverse)
+
+estado <- select(CORTE_100_DIAS, SG_UF, MORTE)
+estado <- estado[!is.na(estado$MORTE),]
+uf <- ("SG_UF")
+UF <- CreateCatTable(vars = uf , data = estado, strata="MORTE")
+print(UF, exact = "stage", showAllLevels = T, format = "f", quote = TRUE, noSpaces = TRUE)
