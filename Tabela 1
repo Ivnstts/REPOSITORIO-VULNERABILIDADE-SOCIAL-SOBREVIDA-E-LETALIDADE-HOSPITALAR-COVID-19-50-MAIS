@@ -1,0 +1,14 @@
+library(tableone)
+
+cat <- c("CS_SEXO", "NU_IDADE_N", "COR_DE_PELE", "GeoSES",  "FATOR_RISC", 
+         "CLASSE_MULTIMORBIDADE", "VACINA", "ENTUBADO", "UTI")
+cont <- c("DIAS_SINTOMA_HOSP", "DIAS_SINTOMA_MORTE")
+
+tabcont <- CreateContTable(vars = cont, data = CORTE_100_DIAS, strata = "MORTE")
+print(tabcont, nonnormal = T, exact = "stage", quote = TRUE, noSpaces = TRUE)
+
+tabcat <- CreateCatTable(vars = cat , data = CORTE_100_DIAS, strata = "MORTE")
+print(tabcat, exact = "stage", showAllLevels = T, format = "f", quote = TRUE, noSpaces = TRUE)
+
+
+
