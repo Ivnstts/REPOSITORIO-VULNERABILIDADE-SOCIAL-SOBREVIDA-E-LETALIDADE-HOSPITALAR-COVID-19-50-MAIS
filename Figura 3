@@ -1,0 +1,10 @@
+library(survival)
+library(survminer)
+
+
+fit <- survfit(Surv(DIAS_SINTOMA_MORTE, MORTE) ~ GeoSES, data = CORTE_100_DIAS)
+ggsurvplot(fit,
+           pval = TRUE, conf.int = TRUE,
+           linetype = "strata", # Change line type by groups
+           surv.median.line = "hv", 
+           break.time.by = 2)
