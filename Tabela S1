@@ -1,0 +1,14 @@
+library(tidyverse)
+library(tableone)
+
+comorbidades <- select(CORTE_100_DIAS, CLASSE_MULTIMORBIDADE,CARDIOPATI, HEMATOLOGI, SIND_DOWN, 
+                       HEPATICA, ASMA, DIABETES, NEUROLOGIC, PNEUMOPATI, 
+                       IMUNODEPRE, RENAL, OBESIDADE, OUT_MORBI, MORTE)
+
+comorbidades <- comorbidades[!is.na(comorbidades$MORTE),]
+com <- c("CLASSE_MULTIMORBIDADE","CARDIOPATI", "HEMATOLOGI", "SIND_DOWN", 
+        "HEPATICA", "ASMA", "DIABETES", "NEUROLOGIC", "PNEUMOPATI", 
+        "IMUNODEPRE", "RENAL", "OBESIDADE", "OUT_MORBI", "MORTE")
+
+COM <- CreateCatTable(vars = com , data = comorbidades, strata = "MORTE")
+print(COM, exact = "stage", showAllLevels = F, format = "f", quote = TRUE, noSpaces = TRUE)
