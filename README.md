@@ -1,2 +1,0 @@
-# VULNERABILIDADE SOCIAL, SOBREVIDA E LETALIDADE HOSPITALAR PELA COVID-19 EM ADULTOS COM 50 ANOS E MAIS: UMA COORTE RETROSPECTIVA DE CASOS NO BRASIL EM 2020 E 2021.
-Trata-se de repositório para banco de dados e scripts de analises estatísticas do artigo em tela.
