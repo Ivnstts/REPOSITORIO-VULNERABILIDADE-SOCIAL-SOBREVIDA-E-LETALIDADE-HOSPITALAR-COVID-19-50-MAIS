@@ -1,4 +1,5 @@
 library(tidyverse)
+library(tableone)
 
 estado <- select(CORTE_100_DIAS, SG_UF, MORTE)
 estado <- estado[!is.na(estado$MORTE),]
